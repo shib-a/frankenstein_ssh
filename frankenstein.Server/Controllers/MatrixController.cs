@@ -70,7 +70,6 @@ public class MatrixController
     {
         try
         {
-            // Валидация входных данных
             if (request.Coefficients == null || !request.Coefficients.Any() ||
                 request.Values == null || request.Values.Length != request.Coefficients.Length ||
                 request.Coefficients.Any(row => row.Length != request.Coefficients.Length))
@@ -80,16 +79,12 @@ public class MatrixController
 
             int n = request.Coefficients.Length;
             double[,] matrix = new double[n, n + 1];
-
-            // Формируем расширенную матрицу
             for (int i = 0; i < n; i++)
             {
                 for (int j = 0; j < n; j++)
                     matrix[i, j] = request.Coefficients[i][j];
                 matrix[i, n] = request.Values[i];
             }
-
-            // Проверка и обеспечение диагонального преобладания
             if (!CheckDiagonalDominance(matrix))
             {
                 matrix = EnsureDiagonalDominance(matrix);
@@ -98,8 +93,6 @@ public class MatrixController
                     return new ReplyDTO(ReplyEnum.NO_DIAGONAL_DOMINANCE, "Cannot achieve diagonal dominance");
                 }
             }
-
-            // Преобразование для метода итераций
             double[,] a = new double[n, n];
             double[] b = new double[n];
             for (int i = 0; i < n; i++)
@@ -109,13 +102,8 @@ public class MatrixController
                 b[i] = matrix[i, n] / matrix[i, i];
                 a[i, i] = 0;
             }
-
-            // Вычисление нормы матрицы
             double matrixNorm = CalculateMatrixNorm(a);
-
-            // Решение методом простых итераций
             var (solution, iterations, errors) = SolveBySimpleIteration(a, b, request.Precision);
-
             return new ReplyDTO(solution, ReplyEnum.OK, "", iterations, matrixNorm, errors);
         }
         catch (Exception ex)
@@ -123,8 +111,7 @@ public class MatrixController
             return new ReplyDTO(ReplyEnum.ERROR, $"Error solving equations: {ex.Message}");
         }
     }
-
-    // Проверка диагонального преобладания
+    
     private bool CheckDiagonalDominance(double[,] matrix)
     {
         int n = matrix.GetLength(0);
@@ -137,21 +124,17 @@ public class MatrixController
                 if (i != j)
                     rowSum += Math.Abs(matrix[i, j]);
             }
-            // Строгое диагональное преобладание
             if (diagonal <= rowSum)
                 return false;
         }
         return true;
     }
 
-    // Обеспечение диагонального преобладания через перестановку строк
     private double[,] EnsureDiagonalDominance(double[,] matrix)
     {
         int n = matrix.GetLength(0);
         int[] rowOrder = Enumerable.Range(0, n).ToArray();
         double[,] tempMatrix = (double[,])matrix.Clone();
-
-        // Проверяем все возможные перестановки строк
         if (GeneratePermutations(rowOrder, 0, tempMatrix))
         {
             double[,] result = new double[n, n + 1];
@@ -164,10 +147,9 @@ public class MatrixController
             }
             return result;
         }
-        return null; // Не удалось найти подходящую перестановку
+        return null;
     }
 
-    // Рекурсивная генерация перестановок
     private bool GeneratePermutations(int[] array, int start, double[,] matrix)
     {
         if (start == array.Length)
@@ -182,16 +164,11 @@ public class MatrixController
             }
             return CheckDiagonalDominance(permutedMatrix);
         }
-
         for (int i = start; i < array.Length; i++)
         {
-            // Меняем местами
             Swap(ref array[start], ref array[i]);
-
             if (GeneratePermutations(array, start + 1, matrix))
                 return true;
-
-            // Возвращаем обратно
             Swap(ref array[start], ref array[i]);
         }
         return false;
@@ -212,7 +189,6 @@ public class MatrixController
         double[] xPrev = new double[n];
         int maxIterations = 1000;
         int iterations = 0;
-
         do
         {
             Array.Copy(x, xPrev, n);
@@ -224,11 +200,9 @@ public class MatrixController
             }
             iterations++;
         } while (CalculateError(x, xPrev) > precision && iterations < maxIterations);
-
         double[] errors = new double[n];
         for (int i = 0; i < n; i++)
             errors[i] = Math.Abs(x[i] - xPrev[i]);
-
         return (x, iterations, errors);
     }
 
