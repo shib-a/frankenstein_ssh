@@ -1,0 +1,46 @@
+.coefficient-table-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    width: auto;
+    gap: 10px;
+}
+.coefficient-table {
+    display: flex;
+    flex-direction: row;
+    height: auto;
+    width: auto;
+}
+input[type="number"] {
+    width: 80px; /* Adjust the width */
+    padding: 5px; /* Add some padding for better appearance */
+    font-size: 14px; /* Adjust font size */
+    text-align: right; /* Align text for better readability */
+    border: 1px solid #ccc;
+    border-radius: 4px; /* Add rounded corners */
+    box-sizing: border-box; /* Prevent padding from affecting dimensions */
+}
+
+input[type="number"]:focus {
+    outline: none;
+    border-color: #007bff; /* Highlight on focus */
+    box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+}
+.dataDiv{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.dataSpan{
+    color: white;
+}
+.rowDiv{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}

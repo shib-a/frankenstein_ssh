@@ -1,0 +1,6 @@
+@frankenstein.Server_HostAddress = http://localhost:5285
+
+GET {{frankenstein.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
