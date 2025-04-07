@@ -197,6 +197,7 @@ public class MatrixController
                 x[i] = b[i];
                 for (int j = 0; j < n; j++)
                     x[i] += a[i, j] * xPrev[j];
+                xPrev[i] = x[i];
             }
             iterations++;
         } while (CalculateError(x, xPrev) > precision && iterations < maxIterations);
