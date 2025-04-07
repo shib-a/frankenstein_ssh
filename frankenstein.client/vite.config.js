@@ -2,9 +2,8 @@ import { fileURLToPath, URL } from 'node:url';
 
 import { defineConfig } from 'vite';
 import plugin from '@vitejs/plugin-react';
-import { env } from 'process';
 
-const target = `http://localhost:${env.ASPNETCORE_HTTP_PORT}`;
+const target = 'http://95.161.164.28:51161';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,6 +15,7 @@ export default defineConfig({
     },
     server: {
         https:false,
+        host: '0.0.0.0',
         port: 51160,
         proxy: {
             '^/matrix': {

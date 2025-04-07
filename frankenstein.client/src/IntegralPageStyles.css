@@ -1,0 +1,89 @@
+#root {
+    /*max-width: 1280px;*/
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    width: 100vw;
+    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+.integralPageWrapper{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.dataDiv{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.methodWrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.functionSelection{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+}
+.functionLabel {
+    padding: 10px;
+}
+.boundarySelection{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+}
+.boundaryInput{
+    padding: 10px;
+}
+.boundaryLabel{
+    padding: 10px;
+}
+.boundaryDiv{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.intPreviewDiv{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+}
+.intPreviewLabel{
+    padding: 10px;
+}
+.methodWrapper{
+    display: grid;
+    grid-template-columns: auto 1fr;
+    /*flex-direction: column;*/
+    /*justify-content: center;*/
+    align-items: center;
+    /*padding: 5px;*/
+    gap: 5px 10px;
+}
+.methodDiv{
+    display: flex;
+    align-items: center;
+    padding: 5px;
+}
+.methodDiv input{
+    margin-right: 0;
+}
+.submitDiv{
+    padding: 10px;
+}

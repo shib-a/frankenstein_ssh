@@ -63,7 +63,7 @@ function CoefficientTable() {
             navigate("/screamer");
             return;
         }
-        const result = await axios.post('http://localhost:51161/matrix/table', JSON.stringify({coefficients: matrix, values: values, precision: precision}), {headers: {'Content-Type': 'application/json'}});
+        const result = await axios.post('http://95.161.164.28:51161/matrix/table', JSON.stringify({coefficients: matrix, values: values, precision: precision}), {headers: {'Content-Type': 'application/json'}});
         checkResult(result.data);
 
     }
@@ -77,7 +77,7 @@ function CoefficientTable() {
         }
         const formData = new FormData();
         formData.append("file", file);
-        const result = await axios.post('http://localhost:51161/matrix/file', formData);
+        const result = await axios.post('http://95.161.164.28:51161/matrix/file', formData);
         checkResult(result.data);
     }
 

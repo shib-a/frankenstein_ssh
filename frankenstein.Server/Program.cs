@@ -1,14 +1,9 @@
+using Microsoft.AspNetCore.Hosting;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
-    //options.AddPolicy("AllowReactApp", policy =>
-    //{
-    //    policy.WithOrigins("http://localhost:51160")
-    //          .AllowAnyHeader()
-    //          .AllowAnyMethod();
-    //});
     options.AddPolicy("AllowAll", builder =>
     {
         builder.AllowAnyOrigin()
@@ -16,11 +11,14 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
-
 builder.Services.AddControllers().AddJsonOptions(opts =>
 {
     var enumConverter = new JsonStringEnumConverter();
     opts.JsonSerializerOptions.Converters.Add(enumConverter);
+});
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.HttpsPort = null; // Disable HTTPS redirection
 });
 var app = builder.Build();
 
@@ -31,5 +29,5 @@ app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 app.MapControllers();
-
+app.Urls.Add("http://0.0.0.0:51161");
 app.Run();

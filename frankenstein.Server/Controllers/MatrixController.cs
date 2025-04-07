@@ -1,4 +1,4 @@
-﻿using frankenstein.Server.DTOs;
+﻿using frankenstein.Server.DTOs.Matrix;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.HttpSys;
 
@@ -8,16 +8,16 @@ namespace frankenstein.Server.Controllers;
 public class MatrixController
 {
     [HttpPost("table")]
-    public ReplyDTO SolveMatrixOne([FromBody] RequestDTO request)
+    public MatrixReplyDTO SolveMatrixOne([FromBody] MatrixRequestDTO request)
     {
         var solution = SolveEquations(request);
         return solution;
     }
 
     [HttpPost("file")]
-    public async Task<ReplyDTO> HandleFileUpload(IFormFile file)
+    public async Task<MatrixReplyDTO> HandleFileUpload(IFormFile file)
     {
-        if (file == null || file.Length == 0) return new ReplyDTO(ReplyEnum.FILE_NOT_FOUND, "No file uploaded.");
+        if (file == null || file.Length == 0) return new MatrixReplyDTO(ReplyEnum.FILE_NOT_FOUND, "No file uploaded.");
         
         using (var stream = file.OpenReadStream())
         using (var reader = new StreamReader(stream))
@@ -50,7 +50,7 @@ public class MatrixController
                         values[line_count] = double.Parse(spl[spl.Length - 1], System.Globalization.CultureInfo.InvariantCulture);
                         line_count++;
                     }
-                    var result = new RequestDTO();
+                    var result = new MatrixRequestDTO();
                     result.Coefficients = coefficients;
                     result.Values = values;
                     result.Precision = precision;
@@ -58,15 +58,15 @@ public class MatrixController
                     return solution;
                 } catch (Exception e)
                 {
-                    return new ReplyDTO(ReplyEnum.ERROR, $"The file has invalid data");
+                    return new MatrixReplyDTO(ReplyEnum.ERROR, $"The file has invalid data");
                 }
 
             }
-            return new ReplyDTO(ReplyEnum.EMPTY_FILE, "The file has no data");
+            return new MatrixReplyDTO(ReplyEnum.EMPTY_FILE, "The file has no data");
         }
     }
 
-    public ReplyDTO SolveEquations(RequestDTO request)
+    public MatrixReplyDTO SolveEquations(MatrixRequestDTO request)
     {
         try
         {
@@ -74,7 +74,7 @@ public class MatrixController
                 request.Values == null || request.Values.Length != request.Coefficients.Length ||
                 request.Coefficients.Any(row => row.Length != request.Coefficients.Length))
             {
-                return new ReplyDTO(ReplyEnum.INVALID_MATRIX_ERROR, "Invalid matrix or vector dimensions");
+                return new MatrixReplyDTO(ReplyEnum.INVALID_MATRIX_ERROR, "Invalid matrix or vector dimensions");
             }
 
             int n = request.Coefficients.Length;
@@ -90,7 +90,7 @@ public class MatrixController
                 matrix = EnsureDiagonalDominance(matrix);
                 if (matrix == null)
                 {
-                    return new ReplyDTO(ReplyEnum.NO_DIAGONAL_DOMINANCE, "Cannot achieve diagonal dominance");
+                    return new MatrixReplyDTO(ReplyEnum.NO_DIAGONAL_DOMINANCE, "Cannot achieve diagonal dominance");
                 }
             }
             double[,] a = new double[n, n];
@@ -108,7 +108,7 @@ public class MatrixController
         }
         catch (Exception ex)
         {
-            return new ReplyDTO(ReplyEnum.ERROR, $"Error solving equations: {ex.Message}");
+            return new MatrixReplyDTO(ReplyEnum.ERROR, $"Error solving equations: {ex.Message}");
         }
     }
     

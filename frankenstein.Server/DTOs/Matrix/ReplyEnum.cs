@@ -1,4 +1,4 @@
-﻿namespace frankenstein.Server.DTOs
+﻿namespace frankenstein.Server.DTOs.Matrix
 {
     public enum ReplyEnum
     {
