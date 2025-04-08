@@ -63,7 +63,7 @@ function CoefficientTable() {
             navigate("/screamer");
             return;
         }
-        const result = await axios.post('http://95.161.164.28:51161/matrix/table', JSON.stringify({coefficients: matrix, values: values, precision: precision}), {headers: {'Content-Type': 'application/json'}});
+        const result = await axios.post('http://localhost:51161/matrix/table', JSON.stringify({coefficients: matrix, values: values, precision: precision}), {headers: {'Content-Type': 'application/json'}});
         checkResult(result.data);
 
     }
@@ -77,7 +77,7 @@ function CoefficientTable() {
         }
         const formData = new FormData();
         formData.append("file", file);
-        const result = await axios.post('http://95.161.164.28:51161/matrix/file', formData);
+        const result = await axios.post('http://localhost:51161/matrix/file', formData);
         checkResult(result.data);
     }
 
@@ -192,7 +192,6 @@ function CoefficientTable() {
                 <span style={{color: "white"}}>Precision:</span>
                 <input type="number" onChange={(e) => setPrecision(e.target.value)}/>
             </div>
-
             <button onClick={handleTableUpload}>Submit</button>
             <input type={"file"} onChange={handleFileChange}/>
             <button type={"button"} onClick={handleFileUpload}>Submit file</button>

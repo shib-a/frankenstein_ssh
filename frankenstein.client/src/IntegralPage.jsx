@@ -9,8 +9,6 @@ const config = {
 
 function IntegralPage() {
     const navigate = useNavigate();
-    // const [functionType, setFunctionType] = React.useState("");
-    // const [functionName, setFunctionName] = React.useState("");
     const [functionInfo, setFunctionInfo] = React.useState(["",""]);
     const [lowerBoundary, setLowerBoundary] = React.useState(0);
     const [upperBoundary, setUpperBoundary] = React.useState(0);
@@ -19,6 +17,13 @@ function IntegralPage() {
     const [result, setResult] = React.useState(0.0);
     const [n, setN] = React.useState(0);
     const handleSubmit = async () => {
+        if(isNaN(Number(lowerBoundary)) || lowerBoundary === "" || isNaN(Number(upperBoundary)) || upperBoundary === "" || isNaN(Number(precision)) || precision === "" || Number(precision) < 0){
+            console.log(lowerBoundary, typeof  lowerBoundary);
+            console.log(upperBoundary, typeof  upperBoundary);
+            console.log(precision, typeof  precision);
+            alert("Incorrect inputs");
+            return;
+        }
         var res = await axios.post("http://localhost:51161/integral/data",
             JSON.stringify({functionInfo: functionInfo, precision: precision,
                 lowerBoundary: lowerBoundary, upperBoundary: upperBoundary, method: method}),

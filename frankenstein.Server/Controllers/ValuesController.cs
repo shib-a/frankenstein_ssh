@@ -59,7 +59,6 @@ namespace frankenstein.Server.Controllers
                 return null;
             }
         }
-
         private void CalculateLeftRectangle(Function function, double lowerBoundary, double upperBoundary, 
             double precision, ref int div_number, ref IntegralReplyDTO result) 
         {

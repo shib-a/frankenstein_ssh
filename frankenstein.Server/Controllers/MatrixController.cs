@@ -103,8 +103,8 @@ public class MatrixController
                 a[i, i] = 0;
             }
             double matrixNorm = CalculateMatrixNorm(a);
-            var (solution, iterations, errors) = SolveBySimpleIteration(a, b, request.Precision);
-            return new ReplyDTO(solution, ReplyEnum.OK, "", iterations, matrixNorm, errors);
+            var (solution, iterations, errors, res) = SolveBySimpleIteration(a, b, matrix, request.Precision);
+            return new MatrixReplyDTO(solution, ReplyEnum.OK, "", iterations, matrixNorm, errors);
         }
         catch (Exception ex)
         {
@@ -180,15 +180,35 @@ public class MatrixController
         a = b;
         b = temp;
     }
-
-    private (double[] solution, int iterations, double[] errors) SolveBySimpleIteration(
-        double[,] a, double[] b, double precision)
+     private double CalculateMatrixNorm(double[,] matrix)
+     {
+         int n = matrix.GetLength(0);
+         double maxSum = 0;
+         for (int i = 0; i < n; i++)
+         {
+             double sum = 0;
+             for (int j = 0; j < n; j++)
+                 sum += Math.Abs(matrix[i, j]);
+             maxSum = Math.Max(maxSum, sum);
+         }
+         return maxSum;
+     }
+    
+    private double CalculateError(double[] x, double[] xPrev)
+     {
+         double maxError = 0.0;
+         for (int i = 0; i < x.Length; i++)
+             maxError = Math.Max(maxError, Math.Abs(x[i] - xPrev[i]));
+         return maxError;
+     }
+    private (double[] solution, int iterations, double[] errors, double[] residual) SolveBySimpleIteration(
+        double[,] a, double[] b, double[,] matrix, double precision)
     {
         int n = b.Length;
         double[] x = new double[n];
-        double[] xPrev = new double[n];
-        int maxIterations = 1000;
-        int iterations = 0;
+        double[] xPrev = new double[n];  
+        int maxIterations = 1000;          
+        int iterations = 0;                
         do
         {
             Array.Copy(x, xPrev, n);
@@ -197,35 +217,22 @@ public class MatrixController
                 x[i] = b[i];
                 for (int j = 0; j < n; j++)
                     x[i] += a[i, j] * xPrev[j];
-                xPrev[i] = x[i];
+                for (int j = i + 1; j < n; j++) // Используем старые x[j] для j > i
+                    x[i] += a[i, j] * x[j];
             }
             iterations++;
         } while (CalculateError(x, xPrev) > precision && iterations < maxIterations);
         double[] errors = new double[n];
         for (int i = 0; i < n; i++)
             errors[i] = Math.Abs(x[i] - xPrev[i]);
-        return (x, iterations, errors);
-    }
-
-    private double CalculateMatrixNorm(double[,] matrix)
-    {
-        int n = matrix.GetLength(0);
-        double maxSum = 0;
+        double[] r = new double[n];
         for (int i = 0; i < n; i++)
         {
-            double sum = 0;
+            double ax_i = 0.0;
             for (int j = 0; j < n; j++)
-                sum += Math.Abs(matrix[i, j]);
-            maxSum = Math.Max(maxSum, sum);
+                ax_i += matrix[i, j] * x[j];
+            r[i] = ax_i - matrix[i, n];
         }
-        return maxSum;
-    }
-
-    private double CalculateError(double[] x, double[] xPrev)
-    {
-        double maxError = 0;
-        for (int i = 0; i < x.Length; i++)
-            maxError = Math.Max(maxError, Math.Abs(x[i] - xPrev[i]));
-        return maxError;
+        return (x, iterations, errors, r);
     }
 }
