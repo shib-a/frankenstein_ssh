@@ -2,6 +2,7 @@
 using frankenstein.Server.DTOs.Approximation;
 using ScottPlot;
 using frankenstein.Server.DTOs.Matrix;
+using Microsoft.AspNetCore.Cors;
 
 namespace frankenstein.Server.Controllers
 {
@@ -35,9 +36,9 @@ namespace frankenstein.Server.Controllers
             approximations.Add(PowerApproximation);
             _matrixService = service;
         }
-
         public List<Func<double[], double[], ApproximationResult>> approximations =
             new List<Func<double[], double[], ApproximationResult>>();
+        
         [HttpPost("data")]
         public ActionResult<ApproximationReplyDTO> SolveApproximation([FromBody] ApproximationRequestDTO requestDTO)
         {
@@ -49,6 +50,28 @@ namespace frankenstein.Server.Controllers
             ScottPlot.Plot plt = new();
             var yValues = request.YValues;
             var xValues = request.XValues;
+            var vals = new[] { xValues, yValues };
+            var sortedXValues = new double[xValues.Length];
+            var sortedYValues = new double[yValues.Length];
+            double[][] pairs = new double[xValues.Length][];
+            for (int i = 0; i < xValues.Length; i++)
+            {
+                pairs[i] = new[] { xValues[i], yValues[i] };
+            }
+
+            Array.Sort(pairs, (x, y) =>
+            {
+                return x[0].CompareTo(y[0]);
+            });
+            for (int i = 0; i < yValues.Length; i++)
+            {
+                sortedXValues[i] = pairs[i][0];
+                sortedYValues[i] = pairs[i][1];
+            }
+            
+            xValues = sortedXValues;
+            yValues = sortedYValues;
+
             plt.Add.ScatterPoints(xValues, yValues, color: Color.FromColor(System.Drawing.Color.Purple));
             var xDelta = Math.Abs((xValues.Max() - xValues.Min()) / xValues.Length);
             var yDelta = Math.Abs((yValues.Max() - yValues.Min()) / yValues.Length);
@@ -81,6 +104,10 @@ namespace frankenstein.Server.Controllers
             var fileBytes = System.IO.File.ReadAllBytes("results.png");
             var fileBase64 = Convert.ToBase64String(fileBytes);
             reply.Plot = fileBase64;
+            if (Double.IsNaN(reply.Deviation) || Double.IsNaN(reply.R2) || Double.IsNaN(reply.MSE))
+            {
+                reply.ErrorMessage = "Cannot count statistics because input data is invalid";
+            }
             return reply;
         }
         [HttpPost("file")]
@@ -256,8 +283,8 @@ namespace frankenstein.Server.Controllers
         {
             double[] logYValues = yValues.Select(y => Math.Log(y)).ToArray();
             var res = LinearApproximation(logYValues, xValues);
-            var a = Math.Exp(res.Coefficients[0]);
-            var b = res.Coefficients[1];
+            var a = Math.Exp(res.Coefficients.Max());
+            var b = res.Coefficients.Min();
             var ret = new ApproximationResult();
             ret.Coefficients = new double[2];
             ret.Coefficients[0] = a;
@@ -284,8 +311,8 @@ namespace frankenstein.Server.Controllers
             double[] logXValues = xValues.Select(x => Math.Log(x)).ToArray();
             double[] logYValues = yValues.Select(y => Math.Log(y)).ToArray();
             var res = LinearApproximation(logYValues, logXValues);
-            var a = Math.Exp(res.Coefficients[0]);
-            var b = res.Coefficients[1];
+            var a = Math.Exp(res.Coefficients[1]);
+            var b = res.Coefficients[0];
             var ret = new ApproximationResult();
             ret.Coefficients = new double[2];
             ret.Coefficients[0] = a;

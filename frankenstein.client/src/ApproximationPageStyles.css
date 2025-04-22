@@ -21,3 +21,13 @@ td {
     justify-content: center;
     align-items: center;
 }
+.submitDiv{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+}
+label{
+    color: black;
+}

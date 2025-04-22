@@ -152,11 +152,10 @@ function IntegralPage() {
                         </div>
                     </div>
                 </div>
-
             <button type={"button"} onClick={(e) => navigate("/")}>go back</button>
         </div>
         </MathJaxContext>
     )
-};
+}
 
 export {IntegralPage};

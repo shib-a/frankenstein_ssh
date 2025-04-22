@@ -16,11 +16,13 @@ builder.Services.AddControllers().AddJsonOptions(opts =>
 {
     var enumConverter = new JsonStringEnumConverter();
     opts.JsonSerializerOptions.Converters.Add(enumConverter);
+    opts.JsonSerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals;
 });
 builder.Services.AddHttpsRedirection(options =>
 {
     options.HttpsPort = null; // Disable HTTPS redirection
 });
+
 builder.Services.AddScoped<MatrixService>();
 var app = builder.Build();
 

@@ -7,7 +7,7 @@ const config = {
     loader: { load: ["input/tex", "output/chtml"] }
 };
 function ApproximationPage() {
-    const [matrix, setMatrix] = useState([["0", "0"], ["0", "0"]]);
+    const [matrix, setMatrix] = useState([["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"]]);
     const [size, setSize] = useState(4)
     const [displayValue, setValue] = useState(() => { return localStorage.getItem("screamer") || 0; });
 
@@ -38,7 +38,14 @@ function ApproximationPage() {
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
     }
-
+    useEffect(() => {
+        if(error){
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [error])
     const setMatrixSize = (value) => {
         if (value > 12 || value < 8) {
             return;
@@ -72,12 +79,14 @@ function ApproximationPage() {
                 console.log(matrix[i][j], typeof(matrix[i][j]));
                 if (!isNaN(Number(matrix[i][j]))) {
                     numberMatrix[i][j] = Number(matrix[i][j]);
+                } else {
+                    setError("Invalid matrix input")
+                    return;
                 }
             }
         }
         const result = await axios.post('http://localhost:51161/approximation/data', JSON.stringify({yValues: numberMatrix[1], xValues: numberMatrix[0]}), {headers: {'Content-Type': 'application/json'}});
         checkResult(result.data);
-
     }
     const handleFileUpload = async (e) => {
         e.preventDefault();
@@ -97,6 +106,7 @@ function ApproximationPage() {
         if(data.errorMessage !== null) {
             console.log(typeof data.errorMessage);
             console.log(data.errorMessage);
+            setError(data.errorMessage)
             setFunc(null);
         } else {
             setImage(data.plot);
@@ -104,6 +114,7 @@ function ApproximationPage() {
             setDeviation(data.deviation);
             setR(data.r2);
             setMse(data.mse);
+            setCoeffs(data.coefficients)
             console.log(data.function);
 
         }
@@ -112,6 +123,10 @@ function ApproximationPage() {
     useEffect(() => {
 
     }, [image])
+    function roundUp(num, decimalPlaces) {
+        const factor = Math.pow(10, decimalPlaces);
+        return Math.ceil(num * factor) / factor;
+    }
     return (
         <MathJaxContext config={config}>
         <div className={"approximationPage"}>
@@ -120,6 +135,7 @@ function ApproximationPage() {
                 <div className={"tbody"}>
                 {matrix.map((row, rowIndex) => (
                     <div className={"rowDiv"} key={rowIndex}>
+                        {rowIndex===0? <label>x</label>: <label>y</label>}
                         {row.map((value, colIndex) => (
                             <div key={colIndex} style={{ display: "inline-block", width: `calc(100% / ${matrix.length})` }}>
                                 {colIndex!==0}
@@ -140,43 +156,51 @@ function ApproximationPage() {
             </div>
             </div>
             <div>
-                <span >Matrix size:</span>
-                <input type="number" onChange={(e) => setMatrixSize(e.target.value)} defaultValue={"dim"}/>
+                <span style={{color:"black"}}>Amount of values: </span>
+                <input type="number" onChange={(e) => setMatrixSize(e.target.value)} defaultValue={8}/>
             </div>
-            <div className={"answerDiv"}>
+            <div className={"answerDiv"} style={{color:"black"}}>
+                {error===null ? "" : <p style={{color:"black"}}>Error: {error}</p>}
                 {image ? <img src={`data:image/png;base64,${image}`} alt="image" /> : ""}
                 <div>
                     {func!=null ? <div>
                         <div>
-                            <label>
+                            <label style={{color:"black"}}>
                                 Best type of approximation - {func}
                             </label>
 
                         </div>
                         <div>
-                            <label>
+                            <label style={{color:"black"}}>
                                 Deviation
                             </label>
-                            <MathJax dynamic inline>{` \\( S = ${deviation}\\)`}</MathJax>
+                            <MathJax dynamic inline>{` \\( S = ${roundUp(deviation,5)}\\)`}</MathJax>
                         </div>
                         <div>
-                            <label>
+                            <label style={{color:"black"}}>
                                 MSE
                             </label>
-                            <MathJax dynamic inline>{` \\( \\sigma = ${mse}\\)`}</MathJax>
+                            <MathJax dynamic inline>{` \\( \\sigma = ${roundUp(mse,5)}\\)`}</MathJax>
                         </div>
                         <div>
-                            <label>
+                            <label style={{color:"black"}}>
                                 Determination coefficient
                             </label>
-                            <MathJax dynamic inline>{` \\(R^2 = ${r}\\)`}</MathJax>
+                            <MathJax dynamic inline>{` \\(R^2 = ${roundUp(r, 5)}\\)`}</MathJax>
+                        </div>
+                        <div>
+                            <label style={{color:"black"}}>
+                                Cooefficients: {coeffs.map((coef, coefIndex) => (<p>{roundUp(coef,5)}</p>))}
+                            </label>
                         </div>
                     </div> : ""}
                 </div>
             </div>
-            <button onClick={handleTableUpload}>Submit</button>
-            <input type={"file"} onChange={handleFileChange}/>
-            <button type={"button"} onClick={handleFileUpload}>Submit file</button>
+            <div className={"submitDiv"}>
+                <button onClick={handleTableUpload}>Submit</button>
+                <input type={"file"} onChange={handleFileChange} style={{color:"black"}}/>
+                <button type={"button"} onClick={handleFileUpload}>Submit file</button>
+            </div>
         </div>
         </MathJaxContext>
     )
