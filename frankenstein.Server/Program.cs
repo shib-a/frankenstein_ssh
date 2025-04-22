@@ -1,3 +1,4 @@
+using frankenstein.Server;
 using Microsoft.AspNetCore.Hosting;
 using System.Text.Json.Serialization;
 
@@ -20,6 +21,7 @@ builder.Services.AddHttpsRedirection(options =>
 {
     options.HttpsPort = null; // Disable HTTPS redirection
 });
+builder.Services.AddScoped<MatrixService>();
 var app = builder.Build();
 
 app.UseCors("AllowAll");

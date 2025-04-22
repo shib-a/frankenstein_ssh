@@ -1,0 +1,23 @@
+.tableWrapper{
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    overflow: auto;
+    flex-direction: column;
+}
+.coefficientTable{
+    width: auto;
+    display: flex;
+    flex-direction: column;
+}
+.tableInput { /* Adjust based on the maximum number of columns */
+    appearance: none;
+    min-width: 45px; /* Ensure inputs don't shrink too small */
+    height: 25px;
+    font-size: 10px;
+}
+td {
+    /*display: flex;*/
+    justify-content: center;
+    align-items: center;
+}

@@ -5,6 +5,7 @@ import {MainPage} from "@/MainPage.jsx";
 import ScreamerPage from "@/assets/ScreamerPage.jsx";
 import ErrorPage from "@/ErrorPage.jsx";
 import {IntegralPage} from "@/IntegralPage.jsx";
+import {ApproximationPage} from "@/ApproximationPage.jsx";
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                 <Route path="/" element={<MainPage/>}/>
                 <Route path="/lab1" element={<CoefficientTable/>}/>
                 <Route path="/lab3" element={<IntegralPage/>}/>
+                <Route path="/lab4" element={<ApproximationPage/>}/>
                 <Route path="/screamer" element={<ScreamerPage/>}/>
                 <Route path="/error" element={<ErrorPage/>}/>
             </Routes>
