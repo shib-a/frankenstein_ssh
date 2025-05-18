@@ -13,6 +13,9 @@ function MainPage() {
             <div className="button-wrapper">
                 <button type="button" className="button" onClick={(e) => navigate("/lab4")}>lab4</button>
             </div>
+            <div className="button-wrapper">
+                <button type="button" className="button" onClick={(e) => navigate("/lab6")}>lab6</button>
+            </div>
         </div>
     )
 }
