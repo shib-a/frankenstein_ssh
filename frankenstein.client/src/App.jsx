@@ -7,6 +7,7 @@ import ErrorPage from "@/ErrorPage.jsx";
 import {IntegralPage} from "@/IntegralPage.jsx";
 import {ApproximationPage} from "@/ApproximationPage.jsx";
 import {DiffPage} from "@/DiffPage.jsx";
+import {InterpolationPage} from "@/InterpolationPage.jsx";
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                 <Route path="/lab1" element={<CoefficientTable/>}/>
                 <Route path="/lab3" element={<IntegralPage/>}/>
                 <Route path="/lab4" element={<ApproximationPage/>}/>
+                <Route path="/lab5" element={<InterpolationPage/>}/>
                 <Route path="/lab6" element={<DiffPage/>}/>
                 <Route path="/screamer" element={<ScreamerPage/>}/>
                 <Route path="/error" element={<ErrorPage/>}/>
