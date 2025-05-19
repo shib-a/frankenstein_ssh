@@ -3,6 +3,7 @@ import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import "./ApproximationPageStyles.css";
 import {MathJax, MathJaxContext} from "better-react-mathjax";
+import "./DiffPageStyles.css"
 const config = {
     loader: { load: ["input/tex", "output/chtml"] }
 };
@@ -21,6 +22,10 @@ function DiffPage() {
     const navigate = useNavigate();
 
     const handleTableUpload = async () => {
+        if(isNaN(Number(x0)) || isNaN(Number(y0)) || isNaN(Number(xn)) || isNaN(Number(eps)) || isNaN(Number(h))) {
+            alert("Please enter valid number");
+            return;
+        }
         const result = await axios.post('http://localhost:51161/diff/data',
             JSON.stringify({function: func, x0: Number(x0), xn: Number(xn), y0: Number(y0), eps: Number(eps), h: Number(h)}), {headers: {'Content-Type': 'application/json'}});
         checkResult(result.data);
@@ -63,15 +68,19 @@ function DiffPage() {
                     </label>
                 </div>
                 <span style={{color: "black"}}> Starting x0 of the interval: </span>
-                <input type="number" onChange={(e) => setX0(e.target.value)}/>
+                <input type="text" className={"textInput"} onChange={(e) => setX0(e.target.value)}/>
                 <span style={{color: "black"}}> Last xn of the interval: </span>
-                <input type="number" onChange={(e) => setXn(e.target.value)}/>
+                <input type="text" className={"textInput"} onChange={(e) => setXn(e.target.value)}/>
                 <span style={{color: "black"}}> Function's value at x0 (y0): </span>
-                <input type="text" onChange={(e) => setY0(e.target.value)}/>
+                <input type="text" className={"textInput"} onChange={(e) => setY0(e.target.value)}/>
                 <span style={{color: "black"}}> Step (h): </span>
-                <input type="text" onChange={(e) => setH(e.target.value)}/>
+                <input type="text" className={"textInput"} onChange={(e) => setH(e.target.value)}/>
                 <span style={{color: "black"}}> Precision: </span>
-                <input type="text" onChange={(e) => setEps(e.target.value)}/>
+                <input type="text" className={"textInput"} onChange={(e) => setEps(e.target.value)}/>
+            </div>
+            <div className={"submitDiv"}>
+                <button type={"button"} onClick={handleTableUpload}>Submit</button>
+                <button type={"button"} onClick={(e) => {navigate("/")}}>Go back</button>
             </div>
             <div className={"answerDiv"} style={{color: "black"}}>
                 {error === null ? "" : <p style={{color: "black"}}>Error: {error}</p>}
@@ -87,9 +96,7 @@ function DiffPage() {
                     </div> : ""}
                 </div>
             </div>
-            <div className={"submitDiv"}>
-                <button type={"button"} onClick={handleTableUpload}>Submit</button>
-            </div>
+
         </div>
         </MathJaxContext>
     )
