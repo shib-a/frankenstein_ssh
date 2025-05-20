@@ -1,8 +1,9 @@
 ﻿using System.Collections;
+using frankenstein.Server.DTOs.Diff;
 using Microsoft.AspNetCore.Mvc;
 using ScottPlot.Statistics;
 
-namespace frankenstein.Server.DTOs.Diff
+namespace frankenstein.Server.Controllers
 {
     [ApiController]
     [Route("diff")]
@@ -86,8 +87,8 @@ namespace frankenstein.Server.DTOs.Diff
                 do
                 {
                     double y1 = y + addedH * f(x, y);
-                    double y2 = (y + (addedH / 2) * f(x, y)) + (addedH / 2) *
-                        f(x + addedH / 2, y + (addedH / 2) * f(x, y));
+                    double y2 = y + addedH / 2 * f(x, y) + addedH / 2 *
+                        f(x + addedH / 2, y + addedH / 2 * f(x, y));
                     error = Math.Abs(y2 - y1);
                     addedH /= 2;
                 } while (error > eps);
@@ -149,7 +150,7 @@ namespace frankenstein.Server.DTOs.Diff
 
                 do
                 {
-                    prediction = res[i - 3] + (4 * addedH / 3) *
+                    prediction = res[i - 3] + 4 * addedH / 3 *
                         (2 * f(x - 3 * addedH, res[i - 3])
                          - f(x - 2 * addedH, res[i - 2])
                          + 2 * f(x - addedH, res[i - 1]));

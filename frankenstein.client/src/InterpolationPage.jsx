@@ -7,22 +7,18 @@ const config = {
     loader: { load: ["input/tex", "output/chtml"] }
 };
 function InterpolationPage() {
-    const [matrix, setMatrix] = useState([["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"]]);
+    const [matrix, setMatrix] = useState([["0", "0", "0"], ["0", "0", "0"]]);
     const [size, setSize] = useState(4)
+    const [targetX, setTargetX] = React.useState(0);
 
     const [image, setImage] = useState(null);
-    const [deviation, setDeviation] = useState(null);
     const [func, setFunc] = useState(null);
     const [error, setError] = useState(null);
-    const [mse, setMse] = useState(null);
     const [r, setR] = useState(null);
-    const [coeffs, setCoeffs] = useState(null);
 
-    const [precision, setPrecision] = useState(0.0);
     const [values, setValues] = useState([0.0, 0.0]);
     const [file, setFile] = useState(null);
     const navigate = useNavigate();
-    const [showLastFrame, setShowLastFrame] = useState(false);
 
     const handleResChange = (itemIndex,value) => {
         const updatedValues = [...values];
@@ -46,7 +42,7 @@ function InterpolationPage() {
         }
     }, [error])
     const setMatrixSize = (value) => {
-        if (value > 12 || value < 8) {
+        if (value > 12 || value < 3) {
             return;
         }
         var rowCount = matrix[0].length;
@@ -84,7 +80,7 @@ function InterpolationPage() {
                 }
             }
         }
-        const result = await axios.post('http://localhost:51161/interpolation/data', JSON.stringify({yValues: numberMatrix[1], xValues: numberMatrix[0]}), {headers: {'Content-Type': 'application/json'}});
+        const result = await axios.post('http://localhost:51161/interpolation/data', JSON.stringify({yValues: numberMatrix[1], xValues: numberMatrix[0], targetX: Number(targetX)}), {headers: {'Content-Type': 'application/json'}});
         checkResult(result.data);
     }
     const handleFileUpload = async (e) => {
@@ -110,12 +106,7 @@ function InterpolationPage() {
         } else {
             setImage(data.plot);
             setFunc(data.function);
-            setDeviation(data.deviation);
-            setR(data.r2);
-            setMse(data.mse);
-            setCoeffs(data.coefficients)
             console.log(data.function);
-
         }
     }
 
@@ -156,30 +147,24 @@ function InterpolationPage() {
             </div>
             <div>
                 <span style={{color:"black"}}>Amount of values: </span>
-                <input type="number" onChange={(e) => setMatrixSize(e.target.value)} defaultValue={8}/>
+                <input type="number" onChange={(e) => setMatrixSize(e.target.value)} defaultValue={3}/>
+            </div>
+            <div>
+                <span style={{color:"black"}}>Target x: </span>
+                <input type="number" onChange={(e) => setTargetX(e.target.value)} defaultValue={0}/>
             </div>
             <div className={"answerDiv"} style={{color:"black"}}>
                 {error===null ? "" : <p style={{color:"black"}}>Error: {error}</p>}
                 {image ? <img src={`data:image/png;base64,${image}`} alt="image" /> : ""}
                 <div>
-                    {func!=null ? <div>
+                    {image!=null ? <div>
                         <div>
-                            <label style={{color:"black"}}>
-                                Best type of approximation - {func}
-                            </label>
-
                         </div>
                         <div>
-                            <label style={{color:"black"}}>
-                                Deviation
-                            </label>
-                            <MathJax dynamic inline>{` \\( S = ${roundUp(deviation,5)}\\)`}</MathJax>
+                            {/*<MathJax dynamic inline>{` \\( S = ${roundUp(deviation,5)}\\)`}</MathJax>*/}
                         </div>
                         <div>
-                            <label style={{color:"black"}}>
-                                MSE
-                            </label>
-                            <MathJax dynamic inline>{` \\( \\sigma = ${roundUp(mse,5)}\\)`}</MathJax>
+                            {/*<MathJax dynamic inline>{` \\( \\sigma = ${roundUp(mse,5)}\\)`}</MathJax>*/}
                         </div>
                         <div>
                             <label style={{color:"black"}}>
@@ -188,9 +173,9 @@ function InterpolationPage() {
                             <MathJax dynamic inline>{` \\(R^2 = ${roundUp(r, 5)}\\)`}</MathJax>
                         </div>
                         <div>
-                            <label style={{color:"black"}}>
-                                Cooefficients: {coeffs.map((coef, coefIndex) => (<p>{roundUp(coef,5)}</p>))}
-                            </label>
+                            {/*<label style={{color:"black"}}>*/}
+                            {/*    Cooefficients: {coeffs.map((coef, coefIndex) => (<p>{roundUp(coef,5)}</p>))}*/}
+                            {/*</label>*/}
                         </div>
                     </div> : ""}
                 </div>
