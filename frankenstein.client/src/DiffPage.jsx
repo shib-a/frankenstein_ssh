@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
-import "./ApproximationPageStyles.css";
 import {MathJax, MathJaxContext} from "better-react-mathjax";
 import "./DiffPageStyles.css"
 const config = {
@@ -38,7 +37,7 @@ function DiffPage() {
             setFunc(null);
         } else {
             setImage(data.plot);
-            setAnswer(data.solution);
+            setAnswer(data.solutions);
         }
     }
 
@@ -62,9 +61,9 @@ function DiffPage() {
                         <MathJax inline>{"\\(y' = y + (1+x)y^2\\)"}</MathJax>
                     </label>
                     <label className={"functionLabel"}>
-                        <input type={"radio"} name={"function"} value={"TRIGONOMETRIC"}
+                        <input type={"radio"} name={"function"} value={"EXPONENTIAL"}
                                onInput={(e) => setFunc(e.target.value)}/>
-                        <MathJax inline>{"\\(y' = \\sin(x)+\\cos(x)\\)"}</MathJax>
+                        <MathJax inline>{"\\(y' = e^x\\)"}</MathJax>
                     </label>
                 </div>
                 <span style={{color: "black"}}> Starting x0 of the interval: </span>
@@ -82,16 +81,31 @@ function DiffPage() {
                 <button type={"button"} onClick={handleTableUpload}>Submit</button>
                 <button type={"button"} onClick={(e) => {navigate("/")}}>Go back</button>
             </div>
-            <div className={"answerDiv"} style={{color: "black"}}>
-                {error === null ? "" : <p style={{color: "black"}}>Error: {error}</p>}
+            <div className={"answerDiv"} style={{color: "white"}}>
+                {error === null ? "" : <p style={{color: "white"}}>Error: {error}</p>}
                 {image ? <img src={`data:image/png;base64,${image}`} alt="image"/> : ""}
                 <div>
                     {answer !== null ? <div>
+                        Errors:
                         <div>
-                            <label style={{color: "black"}}>
-                                Values:
-                            </label>
-                            {answer}
+                            <div>
+                                <label style={{color: "white"}}>
+                                    Euler:
+                                </label>
+                                {" "}{answer[0]}
+                            </div>
+                            <div>
+                                <label style={{color: "white"}}>
+                                    Modified Euler:
+                                </label>
+                                {" "}{answer[1]}
+                            </div>
+                            <div>
+                                <label style={{color: "white"}}>
+                                    Milne:
+                                </label>
+                                {" "}{answer[2]}
+                            </div>
                         </div>
                     </div> : ""}
                 </div>

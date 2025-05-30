@@ -11,13 +11,14 @@ namespace frankenstein.Server.Controllers
     {
         public delegate double Function(double x, double y);
 
-        public List<Func<Function, double, double, double, double, double, double[]>> methods =
-            new List<Func<Function, double, double, double, double, double, double[]>>();
+        public List<Func<Function, double, double, double, double, double, (double[], double)>> methods =
+            new List<Func<Function, double, double, double, double, double, (double[], double)>>();
+
         public DiffController()
         {
             methods.Add(SolveEuler);
             methods.Add(SolveImprovedEuler);
-            methods.Add(SolveMilne);
+            //methods.Add(SolveMilne);
         }
 
         [HttpPost("data")]
@@ -32,163 +33,194 @@ namespace frankenstein.Server.Controllers
             ScottPlot.Plot plt = new();
             Dictionary<string, double[]> results = new Dictionary<string, double[]>();
             Function f;
+            Func<double, double, double, double> exact;
             switch (request.Function)
             {
                 case "LINEAR":
                     f = (x, y) => x + y;
+                    exact = (x, x0, y0) => (Math.Exp(x - x0) * (y0 + x0 + 1) - x - 1);
                     break;
                 case "QUADRATIC":
                     f = (x, y) => y + y * y + x * y * y;
+                    exact = (x, x0, y0) =>
+                        (-Math.Exp(x) / (x * Math.Exp(x) - ((x0 * Math.Exp(x0) * y0 + Math.Exp(x0)) / y0)));
                     break;
-                case "TRIGONOMETRIC":
-                    f = (x, y) => Math.Sin(x) + Math.Cos(y);
+                case "EXPONENTIAL":
+                    f = (x, y) => Math.Exp(x);
+                    exact = (x, x0, y0) => (y0 - Math.Exp(x0) + Math.Exp(x));
                     break;
                 default:
                     f = (x, y) => x + y;
+                    exact = (x, x0, y0) => (Math.Exp(x - x0) * (y0 + x0 + 1) - x - 1);
                     break;
             }
+
             DiffReplyDTO result = new DiffReplyDTO();
-            double[][] sols = new double[3][];
             List<double[]> list = new List<double[]>();
+            var resultErrors = new List<double>();
             foreach (var method in methods)
             {
-                Console.WriteLine("executing method" + method.ToString());
                 var xValues = new List<double>();
-                var res = method(f, request.X0, request.Y0, request.Xn, request.H, request.Eps);
+                var (res, error) = method(f, request.X0, request.Y0, request.Xn, request.H, request.Eps);
                 for (int i = 0; i < res.Length; i++)
                 {
                     xValues.Add(request.X0 + i * request.H);
                 }
 
-                list.Add(res);
                 var t = plt.Add.Scatter(xValues.ToArray(), res);
                 t.LegendText = method.Method.Name;
+                resultErrors.Add(error);
             }
-            plt.Axes.SetLimits(request.X0 - request.H, request.Xn + request.H, -3, 3);
-            result.Solution = list.ToArray();
+
+            var mres = SolveMilne(f, request.X0, request.Y0, request.Xn, request.H, request.Eps);
+            var xs = new List<double>();
+            for (int i = 0; i < mres.Length; i++)
+            {
+                xs.Add(request.X0 + i * request.H);
+            }
+
+            var tmp = plt.Add.Scatter(xs.ToArray(), mres);
+            tmp.LegendText = "SolveMilne";
+            resultErrors.Add(xs.Select((x, i) => Math.Abs(mres[i] - exact(x, request.X0, request.Y0))).Max());
+            //plt.Axes.SetLimits(request.X0 - request.H, request.Xn + request.H, -3, 3);
+            var s = plt.Add.Scatter(xs, xs.Select((x) => exact(x, request.X0, request.Y0)).ToList());
+            s.Smooth = true;
+            s.LegendText = "Actual";
             plt.SavePng("results.png", 500, 500);
             var fileBytes = System.IO.File.ReadAllBytes("results.png");
             var fileBase64 = Convert.ToBase64String(fileBytes);
             result.Plot = fileBase64;
+            result.Solutions = resultErrors.ToArray();
             // add error msg
             return result;
         }
 
-        public double[] SolveEuler(Function f, double x0, double y0, double xn, double h, double eps)
+        public (double[] Solution, double MaxError) SolveEuler(Function f, double x0, double y0, double xn, double h,
+            double eps)
         {
             List<double> res = new List<double> { y0 };
+            List<double> stepErrors = new List<double>();
             double x = x0;
             double y = y0;
-            
+            double p = 1;
             while (x < xn)
             {
-                double addedH = h;
+                double currentH = h;
+                bool stepAccepted = false;
                 double error;
                 do
                 {
-                    double y1 = y + addedH * f(x, y);
-                    double y2 = y + addedH / 2 * f(x, y) + addedH / 2 *
-                        f(x + addedH / 2, y + addedH / 2 * f(x, y));
-                    error = Math.Abs(y2 - y1);
-                    addedH /= 2;
-                } while (error > eps);
-                y += h * f(x, y);
-                x += h;
-                res.Add(y);
+                    if (x + currentH > xn) currentH = xn - x;
+                    double y1 = y + currentH * f(x, y);
+                    double yHalf = y + (currentH / 2) * f(x, y);
+                    double y2 = yHalf + (currentH / 2) * f(x + currentH / 2, yHalf);
+                    error = Math.Abs(y1 - y2) / (Math.Pow(2, p) - 1);
+                    if (error < eps)
+                    {
+                        y = y2;
+                        x += currentH;
+                        res.Add(y);
+                        stepAccepted = true;
+                    }
+                    else
+                    {
+                        currentH /= 2;
+                    }
+
+                    stepErrors.Add(error);
+                } while (!stepAccepted);
             }
-            return res.ToArray();
+
+            double maxError = stepErrors.Count > 0 ? stepErrors.Max() : 0;
+            return (res.ToArray(), maxError);
         }
 
-        public double[] SolveImprovedEuler(Function f, double x0, double y0, double xn, double h, double eps)
+        public (double[] Solution, double MaxError) SolveImprovedEuler(Function f, double x0, double y0, double xn,
+            double h, double eps)
         {
             List<double> res = new List<double> { y0 };
+            List<double> stepErrors = new List<double>();
             double x = x0;
             double y = y0;
+            double p = 2;
             while (x < xn)
             {
-                double addedH = h;
-                double error;
+                double currentH = h;
+                bool stepAccepted = false;
+                double error = 0;
                 do
                 {
-                    double k1 = addedH * f(x, y);
-                    double k2 = addedH * f(x + addedH, y + k1);
+                    if (x + currentH > xn) currentH = xn - x;
+                    double k1 = currentH * f(x, y);
+                    double k2 = currentH * f(x + currentH, y + k1);
                     double y1 = y + (k1 + k2) / 2;
+                    double hHalf = currentH / 2;
+                    double k1Half1 = hHalf * f(x, y);
+                    double k2Half1 = hHalf * f(x + hHalf, y + k1Half1);
+                    double yHalf = y + (k1Half1 + k2Half1) / 2;
+                    double k1Half2 = hHalf * f(x + hHalf, yHalf);
+                    double k2Half2 = hHalf * f(x + currentH, yHalf + k1Half2);
+                    double y2 = yHalf + (k1Half2 + k2Half2) / 2;
+                    error = Math.Abs(y1 - y2) / (Math.Pow(2, p) - 1);
+                    if (error < eps)
+                    {
+                        y = y2;
+                        x += currentH;
+                        res.Add(y);
+                        stepAccepted = true;
+                    }
+                    else
+                    {
+                        currentH /= 2;
+                    }
 
-                    double k1Half = addedH / 2 * f(x, y);
-                    double k2Half = addedH / 2 * f(x + addedH / 2, y + k1Half);
-                    double y2 = y + (k1Half + k2Half) / 2;
-                    error = Math.Abs(y2 - y1);
-                    addedH /= 2;
-                } while(error > eps);
+                    stepErrors.Add(error);
 
-                y += (h * f(x,y) + h * f(x + h, y + h * f(x, y))) / 2;
-                x += h;
-                res.Add(y);
+                } while (!stepAccepted);
             }
-            return res.ToArray();
+
+            double maxError = stepErrors.Count > 0 ? stepErrors.Max() : 0;
+            return (res.ToArray(), maxError);
         }
 
         public double[] SolveMilne(Function f, double x0, double y0, double xn, double h, double eps)
         {
-            //double[] initialPoints = SolveImprovedEuler(f, x0, y0, x0 + 3 * h, h, eps);
-            double[] initialPoints = SolveRungeKutta4(f, x0, y0, x0 + 3 * h, h);
+            (double[] initialPoints, var t) = SolveImprovedEuler(f, x0, y0, x0 + 3 * h, h, eps);
             if (initialPoints.Length < 4)
             {
-                throw new ArgumentException("Недостаточно начальных точек.");
+                throw new ArgumentException("Not enough starting points");
             }
 
-            List<double> res = new List<double>(initialPoints);
+            List<double> solution = new List<double>(initialPoints);
             double x = x0 + 3 * h;
-            int i = 3;
+            int index = 3;
 
-            while (x + h <= xn)
-            {
-                double addedH = h;
-                double prediction;
-                double correction;
-                double error;
-
-                do
-                {
-                    prediction = res[i - 3] + 4 * addedH / 3 *
-                        (2 * f(x - 3 * addedH, res[i - 3])
-                         - f(x - 2 * addedH, res[i - 2])
-                         + 2 * f(x - addedH, res[i - 1]));
-
-                    correction = res[i - 1] + addedH / 3 *
-                        (f(x - addedH, res[i - 1])
-                         + 4 * f(x, prediction)
-                         + f(x + addedH, prediction));
-
-                    error = Math.Abs(correction - prediction);
-                    if (error > eps)
-                    {
-                        addedH /= 2;
-                    }
-                } while (error > eps);
-
-                res.Add(correction);
-                x += addedH;
-                i++;
-            }
-            return res.ToArray();
-        }
-        public double[] SolveRungeKutta4(Function f, double x0, double y0, double xn, double h)
-        {
-            List<double> res = new List<double> { y0 };
-            double x = x0;
-            double y = y0;
             while (x < xn)
             {
-                double k1 = h * f(x, y);
-                double k2 = h * f(x + h / 2, y + k1 / 2);
-                double k3 = h * f(x + h / 2, y + k2 / 2);
-                double k4 = h * f(x + h, y + k3);
-                y += (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+                double prediction = solution[index - 3] +
+                                    4 * h / 3 * (2 * f(x - 3 * h, solution[index - 3]) -
+                                                 f(x - 2 * h, solution[index - 2]) +
+                                                 2 * f(x - h, solution[index - 1]));
+                double correction;
+                double error;
+                int maxIterations = 100;
+                do
+                {
+                    correction = solution[index - 1] +
+                                 h / 3 * (f(x - h, solution[index - 1]) +
+                                          4 * f(x, prediction) +
+                                          f(x + h, prediction));
+                    error = Math.Abs(correction - prediction);
+                    prediction = correction;
+                    if (--maxIterations <= 0) break;
+                } while (error > eps);
+
+                solution.Add(correction);
                 x += h;
-                res.Add(y);
+                index++;
             }
-            return res.ToArray();
+
+            return solution.ToArray();
         }
     }
 }

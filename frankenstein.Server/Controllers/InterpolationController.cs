@@ -2,8 +2,6 @@
 using frankenstein.Server.DTOs.Approximation;
 using frankenstein.Server.DTOs.Interpolation;
 using ScottPlot;
-using frankenstein.Server.DTOs.Matrix;
-using Microsoft.AspNetCore.Cors;
 
 namespace frankenstein.Server.Controllers
 {
@@ -16,12 +14,12 @@ namespace frankenstein.Server.Controllers
 
         public InterpolationController(MatrixService service)
         {
-            approximations.Add(NewtonInterpolation);
-            approximations.Add(LagrangeInterpolation);
-            //approximations.Add(StirlingInterpolation);
-            //approximations.Add(BesselInterpolation);
+            interpolations.Add(NewtonInterpolation);
+            interpolations.Add(LagrangeInterpolation);
+            //interpolations.Add(StirlingInterpolation);
+            //interpolations.Add(BesselInterpolation);
         }
-        public List<Func<double[], double[], List<List<double>>, double, double>> approximations =
+        public List<Func<double[], double[], List<List<double>>, double, double>> interpolations =
             new List<Func<double[], double[], List<List<double>>, double, double>>();
         
         [HttpPost("data")]
@@ -30,6 +28,52 @@ namespace frankenstein.Server.Controllers
             InterpolationReplyDTO result = RunInterpolation(requestDTO);
             return Ok(result);
         }
+
+        [HttpPost("file")]
+        public async Task<ActionResult<ApproximationReplyDTO>> HandleFileUpload(IFormFile file)
+        {
+            ApproximationReplyDTO result = new ApproximationReplyDTO();
+            using (var stream = file.OpenReadStream())
+            using (var reader = new StreamReader(stream))
+            {
+                if (!reader.EndOfStream)
+                {
+                    try
+                    {
+                        var xLine = await reader.ReadLineAsync();
+                        var splitXLine = xLine.Split(",");
+                        var yLine = await reader.ReadLineAsync();
+                        var splitYLine = yLine.Split(",");
+                        if (splitXLine.Length != splitYLine.Length)
+                        {
+                            result.ErrorMessage = "INVALID_FILE_DATA";
+                            return result;
+                        }
+
+                        double[] xValues = new double[splitXLine.Length];
+                        double[] yValues = new double[splitYLine.Length];
+                        for (int i = 0; i < splitXLine.Length; i++)
+                        {
+                            xValues[i] = double.Parse(splitXLine[i], System.Globalization.CultureInfo.InvariantCulture);
+                            yValues[i] = double.Parse(splitYLine[i], System.Globalization.CultureInfo.InvariantCulture);
+                        }
+
+                        var request = new InterpolationRequestDTO();
+                        request.XValues = xValues;
+                        request.YValues = yValues;
+                        var res = RunInterpolation(request);
+                        return Ok(res);
+                    }
+                    catch (Exception e)
+                    {
+                        result.ErrorMessage = "INVALID_FILE";
+                    }
+                }
+            }
+
+            return result;
+        }
+                
         public InterpolationReplyDTO RunInterpolation(InterpolationRequestDTO request)
         {
             ScottPlot.Plot plt = new();
@@ -60,67 +104,28 @@ namespace frankenstein.Server.Controllers
             plt.Add.ScatterPoints(xValues, yValues, color: Color.FromColor(System.Drawing.Color.Purple));
             var s = plt.Add.Scatter(xValues, yValues);
             s.Smooth = true;
+            
+            var reply = new InterpolationReplyDTO();
             Dictionary<string,double> results = new Dictionary<string, double>();
-            foreach (var interpolation in approximations)
+            var sols = new List<double>();
+            foreach (var interpolation in interpolations)
             {
                 var result = interpolation(xValues, yValues, BuildDifferenceTable(yValues), request.TargetX);
                 results.Add(interpolation.Method.Name, result);
                 //var plot_y = xValues.Select(x => result.Function(x)).ToArray();
                 var t = plt.Add.Scatter(request.TargetX, result);
                 t.LegendText = interpolation.Method.Name;
+                sols.Add(result);
             }
-
-            var reply = new InterpolationReplyDTO();
             plt.SavePng("results.png", 500, 500);
             var fileBytes = System.IO.File.ReadAllBytes("results.png");
             var fileBase64 = Convert.ToBase64String(fileBytes);
             reply.Plot = fileBase64;
+            reply.Solutions = sols.ToArray();
             return reply;
         }
-        [HttpPost("file")]
-        public async Task<ActionResult<ApproximationReplyDTO>> HandleFileUpload(IFormFile file)
-        {
-            ApproximationReplyDTO result = new ApproximationReplyDTO();
-            using (var stream = file.OpenReadStream())
-            using (var reader = new StreamReader(stream))
-            {
-                if(!reader.EndOfStream)
-                {
-                    try
-                    {
-                        var xLine = await reader.ReadLineAsync();
-                        var splitXLine = xLine.Split(",");
-                        var yLine = await reader.ReadLineAsync();
-                        var splitYLine = yLine.Split(",");
-                        if(splitXLine.Length != splitYLine.Length)
-                        {
-                            result.ErrorMessage = "INVALID_FILE_DATA";
-                            return result;
-                        }
-                        double[] xValues = new double[splitXLine.Length];
-                        double[] yValues = new double[splitYLine.Length];
-                        for (int i = 0; i < splitXLine.Length; i++)
-                        {
-                            xValues[i] = double.Parse(splitXLine[i], System.Globalization.CultureInfo.InvariantCulture);
-                            yValues[i] = double.Parse(splitYLine[i], System.Globalization.CultureInfo.InvariantCulture);
-                        }
-
-                        var request = new InterpolationRequestDTO();
-                        request.XValues = xValues;
-                        request.YValues = yValues;
-                        var res = RunInterpolation(request);
-                        return Ok(res);
-                    } 
-                    catch (Exception e)
-                    {
-                        result.ErrorMessage = "INVALID_FILE";
-                    }
-                }
-            }
-            return result;
-        }
-
-
+        
+        
         private List<List<double>> BuildDifferenceTable(double[] yValues)
         {
             int n = yValues.Length;
@@ -149,11 +154,11 @@ namespace frankenstein.Server.Controllers
             }
             return result;
         }
+        
         private double LagrangeInterpolation(double[] x, double[] y, List<List<double>> diffTable, double targetX)
         {
             int n = x.Length;
             double result = 0;
-
             for (int i = 0; i < n; i++)
             {
                 double term = y[i];
@@ -170,10 +175,9 @@ namespace frankenstein.Server.Controllers
         private double StirlingInterpolation(double[] x, double[] y, List<List<double>> diffTable, double targetX)
         {
             int n = x.Length;
-            int centerIndex = n / 2 - 1; // Центральный индекс
+            int centerIndex = n / 2 - 1;
             double h = x[1] - x[0];
             double t = (targetX - x[centerIndex]) / h;
-
             double result = diffTable[0][centerIndex];
             double term = 1;
             double factorial = 1;
@@ -184,12 +188,12 @@ namespace frankenstein.Server.Controllers
                 int shift = (i + 1) / 2;
                 double delta = diffTable[i][centerIndex - shift];
 
-                if (i % 2 == 1) // Для нечётных порядков
+                if (i % 2 == 1)
                 {
                     term *= (t * t - (shift - 1) * (shift - 1)) / (2 * i - 1);
                     result += term * delta / factorial;
                 }
-                else // Для чётных порядков
+                else
                 {
                     term *= t / i;
                     result += term * delta / factorial;
@@ -204,7 +208,6 @@ namespace frankenstein.Server.Controllers
             int centerIndex = n / 2 - 1;
             double h = x[1] - x[0];
             double t = (targetX - x[centerIndex]) / h - 0.5;
-
             double result = (diffTable[0][centerIndex] + diffTable[0][centerIndex + 1]) / 2;
             double term = t;
             double factorial = 1;

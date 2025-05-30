@@ -12,9 +12,8 @@ function InterpolationPage() {
     const [targetX, setTargetX] = React.useState(0);
 
     const [image, setImage] = useState(null);
-    const [func, setFunc] = useState(null);
     const [error, setError] = useState(null);
-    const [r, setR] = useState(null);
+    const [answer, setAnswer] = useState(null);
 
     const [values, setValues] = useState([0.0, 0.0]);
     const [file, setFile] = useState(null);
@@ -33,6 +32,7 @@ function InterpolationPage() {
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
     }
+
     useEffect(() => {
         if(error){
             const timer = setTimeout(() => {
@@ -41,6 +41,7 @@ function InterpolationPage() {
             return () => clearTimeout(timer);
         }
     }, [error])
+
     const setMatrixSize = (value) => {
         if (value > 12 || value < 3) {
             return;
@@ -102,10 +103,9 @@ function InterpolationPage() {
             console.log(typeof data.errorMessage);
             console.log(data.errorMessage);
             setError(data.errorMessage)
-            setFunc(null);
         } else {
             setImage(data.plot);
-            setFunc(data.function);
+            setAnswer(data.solutions)
             console.log(data.function);
         }
     }
@@ -159,18 +159,25 @@ function InterpolationPage() {
                 <div>
                     {image!=null ? <div>
                         <div>
+                            <label style={{color: "black"}}>
+                                Newton:
+                            </label>
+                            {" "}{answer[0]}
+                        </div>
+                        <div>
+                            <label style={{color: "black"}}>
+                                Lagrange:
+                            </label>
+                            {" "}{answer[1]}
+                        </div>
+                        <div>
+                            {/*<label style={{color: "white"}}>*/}
+                            {/*    Milne:*/}
+                            {/*</label>*/}
+                            {/*{" "}{answer[2]}*/}
                         </div>
                         <div>
                             {/*<MathJax dynamic inline>{` \\( S = ${roundUp(deviation,5)}\\)`}</MathJax>*/}
-                        </div>
-                        <div>
-                            {/*<MathJax dynamic inline>{` \\( \\sigma = ${roundUp(mse,5)}\\)`}</MathJax>*/}
-                        </div>
-                        <div>
-                            <label style={{color:"black"}}>
-                                Determination coefficient
-                            </label>
-                            <MathJax dynamic inline>{` \\(R^2 = ${roundUp(r, 5)}\\)`}</MathJax>
                         </div>
                         <div>
                             {/*<label style={{color:"black"}}>*/}
