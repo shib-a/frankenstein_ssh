@@ -81,27 +81,26 @@ function DiffPage() {
                 <button type={"button"} onClick={handleTableUpload}>Submit</button>
                 <button type={"button"} onClick={(e) => {navigate("/")}}>Go back</button>
             </div>
-            <div className={"answerDiv"} style={{color: "white"}}>
-                {error === null ? "" : <p style={{color: "white"}}>Error: {error}</p>}
+            <div className={"answerDiv"} style={{color: "black"}}>
+                {error === null ? "" : <p style={{color: "black"}}>Error: {error}</p>}
                 {image ? <img src={`data:image/png;base64,${image}`} alt="image"/> : ""}
                 <div>
                     {answer !== null ? <div>
-                        Errors:
                         <div>
                             <div>
-                                <label style={{color: "white"}}>
+                                <label style={{color: "black"}}>
                                     Euler:
                                 </label>
                                 {" "}{answer[0]}
                             </div>
                             <div>
-                                <label style={{color: "white"}}>
+                                <label style={{color: "black"}}>
                                     Modified Euler:
                                 </label>
                                 {" "}{answer[1]}
                             </div>
                             <div>
-                                <label style={{color: "white"}}>
+                                <label style={{color: "black"}}>
                                     Milne:
                                 </label>
                                 {" "}{answer[2]}

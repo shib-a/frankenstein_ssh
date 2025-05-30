@@ -14,6 +14,7 @@ function InterpolationPage() {
     const [image, setImage] = useState(null);
     const [error, setError] = useState(null);
     const [answer, setAnswer] = useState(null);
+    const [diffTable, setDiffTable] = useState(null);
 
     const [values, setValues] = useState([0.0, 0.0]);
     const [file, setFile] = useState(null);
@@ -105,7 +106,8 @@ function InterpolationPage() {
             setError(data.errorMessage)
         } else {
             setImage(data.plot);
-            setAnswer(data.solutions)
+            setAnswer(data.solutions);
+            setDiffTable(data.diffTable);
             console.log(data.function);
         }
     }
@@ -184,12 +186,28 @@ function InterpolationPage() {
                             {/*    Cooefficients: {coeffs.map((coef, coefIndex) => (<p>{roundUp(coef,5)}</p>))}*/}
                             {/*</label>*/}
                         </div>
+                        <div style={{flexDirection:"column-reverse", justifyContent:"space-between"}}>
+                            <div className={"tbody"} style={{display: "flex", flexDirection:"row"}}>
+                            {diffTable.map((row, rowIndex) => (
+                                <div key={rowIndex} className={"rowDiv"} style={{flexDirection: "column"}}>
+                                    {row.map((col, colIndex) => (
+                                        <div key={colIndex} style = {{margin: "10px"}}>
+                                            <p>
+                                                {col}
+                                            </p>
+                                        </div>
+                                        )
+                                    )}
+                                </div>
+                            ))}
+                            </div>
+                        </div>
                     </div> : ""}
                 </div>
             </div>
             <div className={"submitDiv"}>
                 <button onClick={handleTableUpload}>Submit</button>
-                <input type={"file"} onChange={handleFileChange} style={{color:"black"}}/>
+                <input type={"file"} onChange={handleFileChange} style={{color: "black"}}/>
                 <button type={"button"} onClick={handleFileUpload}>Submit file</button>
             </div>
         </div>

@@ -25,8 +25,17 @@ namespace frankenstein.Server.Controllers
         [HttpPost("data")]
         public ActionResult<InterpolationReplyDTO> SolveApproximation([FromBody] InterpolationRequestDTO requestDTO)
         {
-            InterpolationReplyDTO result = RunInterpolation(requestDTO);
-            return Ok(result);
+            try
+            {
+                InterpolationReplyDTO result = RunInterpolation(requestDTO);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                var result = new InterpolationReplyDTO();
+                result.ErrorMessage = "Invalid data";
+                return Ok();
+            }
         }
 
         [HttpPost("file")]
@@ -108,9 +117,10 @@ namespace frankenstein.Server.Controllers
             var reply = new InterpolationReplyDTO();
             Dictionary<string,double> results = new Dictionary<string, double>();
             var sols = new List<double>();
+            var diffTable = BuildDifferenceTable(yValues);
             foreach (var interpolation in interpolations)
             {
-                var result = interpolation(xValues, yValues, BuildDifferenceTable(yValues), request.TargetX);
+                var result = interpolation(xValues, yValues, diffTable, request.TargetX);
                 results.Add(interpolation.Method.Name, result);
                 //var plot_y = xValues.Select(x => result.Function(x)).ToArray();
                 var t = plt.Add.Scatter(request.TargetX, result);
@@ -122,6 +132,7 @@ namespace frankenstein.Server.Controllers
             var fileBase64 = Convert.ToBase64String(fileBytes);
             reply.Plot = fileBase64;
             reply.Solutions = sols.ToArray();
+            reply.DiffTable = diffTable.Select(e => e.ToArray()).ToArray();
             return reply;
         }
         
@@ -142,16 +153,21 @@ namespace frankenstein.Server.Controllers
         private double NewtonInterpolation(double[] x, double[] y, List<List<double>> diffTable, double targetX)
         {
             int n = x.Length;
-            double h = x[1] - x[0];
-            double t = (targetX - x[0]) / h;
-            double result = diffTable[0][0];
-            double term = 1;
-
-            for (int i = 1; i < diffTable.Count; i++)
+            if (n == 0) throw new ArgumentException("No data points provided");
+            if (n != y.Length) throw new ArgumentException("Arrays x and y must have the same length");
+            double[] a = (double[])y.Clone();
+            double result = a[0];
+            double product = 1.0;
+            for (int k = 1; k < n; k++)
             {
-                term *= (t - i + 1) / i;
-                result += term * diffTable[i][0];
+                for (int i = n - 1; i >= k; i--)
+                {
+                    a[i] = (a[i] - a[i - 1]) / (x[i] - x[i - k]);
+                }
+                product *= (targetX - x[k - 1]);
+                result += a[k] * product;
             }
+
             return result;
         }
         
