@@ -275,7 +275,7 @@ namespace frankenstein.Server.Controllers
             contour1.LineWidth = 2;
             contour1.Label = "Уравнение 1";
 
-            var contour2 = plt.AddContour(xs, ys, z2, levels: new double[] { 0 });
+            var contour2 = plt.Add.ContourLines(xs, ys, z2, levels: new double[] { 0 });
             contour2.LineStyle = LineStyle.Dash;
             contour2.LineWidth = 2;
             contour2.Label = "Уравнение 2";
