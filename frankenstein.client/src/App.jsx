@@ -1,6 +1,6 @@
 import {Route, BrowserRouter as Router, Routes} from "react-router-dom";
 import './App.css';
-import { CoefficientTable } from './CoefficientTable';
+import { MatrixPage } from './MatrixPage.jsx';
 import {MainPage} from "@/MainPage.jsx";
 import ScreamerPage from "@/assets/ScreamerPage.jsx";
 import ErrorPage from "@/ErrorPage.jsx";
@@ -14,7 +14,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<MainPage/>}/>
-                <Route path="/lab1" element={<CoefficientTable/>}/>
+                <Route path="/lab1" element={<MatrixPage/>}/>
                 <Route path="/lab3" element={<IntegralPage/>}/>
                 <Route path="/lab4" element={<ApproximationPage/>}/>
                 <Route path="/lab5" element={<InterpolationPage/>}/>

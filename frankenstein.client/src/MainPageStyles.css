@@ -18,6 +18,11 @@
     bottom: 10%;
     right: 0;
 }
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 .camUp{
     position: absolute;
     bottom: 0;
@@ -27,4 +32,56 @@
     opacity: 1;
     width: 40%;
     height: 5%;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+#lab1{
+    position: absolute;
+    right: 340px;
+    bottom: 16px;
+}
+#lab2{
+    position: absolute;
+    right: 250px;
+    bottom: 150px;
+}
+#lab4{
+    position: absolute;
+    right: 375px;
+    bottom: 225px;
+}
+#lab3{
+    position: absolute;
+    right: 375px;
+    bottom: 150px;
+}
+#lab5{
+    position: absolute;
+    right: 315px;
+    bottom: 285px;
+}
+#lab6{
+    position: absolute;
+    right: 40px;
+    bottom: 192px;
+}
+#office{
+    position: absolute;
+    right: 220px;
+    bottom: 238px;
+}
+.camButton{
+    display: flex;
+    border-color: #dddddd;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    background-color: transparent;
+    color: white;
+    width: 60px;
+    height: 40px;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
 }

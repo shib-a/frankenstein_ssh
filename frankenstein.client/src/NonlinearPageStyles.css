@@ -1,0 +1,22 @@
+.room{
+    background-image: url("public/room/room_mid.png");
+    height: 100vh;
+    width: 100vw;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position-y: 50%;
+    background-position-x: center;
+    transition: background-image 0.3s ease-in-out;
+}
+.integrelPageWrapper{
+    height: 100%;
+    width: 100%;
+}
+.darkassDiv*{
+    color: white;
+
+}
+.functionLabel, .boundarySelection, .boundaryDiv, .boundaryLabel, .methodWrapper
+, .methodLabel, .methodDiv{
+    color: white;
+}

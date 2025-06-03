@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import "./assets/CoefficientTable.css"
-function CoefficientTable() {
+function MatrixPage() {
     const [matrix, setMatrix] = useState([[0, 0], [0, 0]]);
     const [displayValue, setValue] = useState(() => { return localStorage.getItem("screamer") || 0; });
 
@@ -227,4 +227,4 @@ function CoefficientTable() {
     )
 }
 
-export {CoefficientTable};
+export {MatrixPage};
