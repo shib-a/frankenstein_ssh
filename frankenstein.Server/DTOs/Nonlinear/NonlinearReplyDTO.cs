@@ -8,5 +8,6 @@
         public int IterationCount { get; set; }
         public double[] Errors { get; set; }
         public string Plot { get; set; }
+        public double[] Solutions { get; set; }
     }
 }

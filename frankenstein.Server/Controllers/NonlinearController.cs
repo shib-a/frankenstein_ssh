@@ -62,7 +62,19 @@ namespace frankenstein.Server.Controllers
             }
             else
             {
-                var (f1, f2, phi1, phi2) = systems[sysChoice];
+                var systems = new Dictionary<int, (Func<double, double, double> f1,
+                    Func<double, double, double> f2,
+                    Func<double, double, double> phi1,
+                    Func<double, double, double> phi2)>
+                {
+                    [1] = ( // Новая система
+                            (x, y) => Math.Sin(x + y) - 1.5 * x + 0.1, // sin(x+y) = 1.5x - 0.1
+                            (x, y) => x * x + 2 * y * y - 1,           // x^2 + 2y^2 = 1
+                            (x, y) => (Math.Sin(x + y) + 0.1) / 1.5,   // x = (sin(x+y) + 0.1)/1.5
+                            (x, y) => Math.Sqrt((1 - x * x) / 2)        // y = sqrt((1 - x^2)/2)
+                        )
+                };
+                var (f1, f2, phi1, phi2) = systems[1];
                 double[] solution;
                 double[] errors;
                 double eps = requestDTO.Precision;
@@ -83,6 +95,13 @@ namespace frankenstein.Server.Controllers
                     iterations++;
                 }
                 while (Math.Max(errX, errY) > eps);
+                solution = new double[] { x, y };
+                var result = new NonlinearReplyDTO();
+                result.Solutions = solution;
+                result.IterationCount = iterations;
+                result.Plot = GenerateSystemPlot(f1, f2, solution[0] - 2, solution[0] + 2,
+                    solution[1] - 2, solution[1] + 2);
+                return result;
             }
         }
         private Func<double, double> GetFunction(string functionType)
