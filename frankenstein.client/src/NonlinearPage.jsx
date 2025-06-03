@@ -68,7 +68,7 @@ function NonlinearPage() {
         console.log(relativeClickY, elementHeight);
         let newImage = "";
         if (currentImage === "public/room/door_right_dark.png" || currentImage === "public/room/closet.png" || currentImage === "public/room/door_left_dark.png") {
-            if(Math.abs(relativeClickY - elementHeight) > 50) {
+            if(Math.abs(relativeClickY - elementHeight) > 50 || elementHeight < 500) {
                 return;
             } else {
                 newImage = "public/room/room_mid.png";
