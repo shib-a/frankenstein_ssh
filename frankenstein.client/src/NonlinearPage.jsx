@@ -59,14 +59,16 @@ function NonlinearPage() {
     const handleRoomClick = (e) =>{
         const rect = e.target.getBoundingClientRect();
         const clickX = e.clientX - rect.left; // X-coordinate relative to the image
-        const clickY =  rect.height - e.clientY;
-        console.log(rect.top, rect.height);
-        console.log(clickY);
+        const clickY = e.clientY; // Vertical position of the click
+        const elementTop = e.target.getBoundingClientRect().top; // Top boundary of the element
+        const elementHeight = e.target.offsetHeight; // Height of the element
+        const relativeClickY = clickY - elementTop; // Click position relative to the element
         const imageWidth = rect.width;
         const imageHeight = rect.height;
+        console.log(relativeClickY, elementHeight);
         let newImage = "";
         if (currentImage === "public/room/door_right_dark.png" || currentImage === "public/room/closet.png" || currentImage === "public/room/door_left_dark.png") {
-            if (!(clickY < imageHeight/4)) {
+            if(Math.abs(relativeClickY - elementHeight) > 50) {
                 return;
             } else {
                 newImage = "public/room/room_mid.png";
